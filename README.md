@@ -1,7 +1,7 @@
-
 - [Linux Kernel](#linux-kernel)
   - [Subsystems selected](#subsystems-selected)
   - [Notes](#notes)
+  - [Readings](#readings)
 
 # Linux Kernel
 
@@ -13,3 +13,11 @@
 ## Notes
 
 - [Debugging](./debugging.md)
+
+## Readings
+
+1. Linux Kernel Development by Robert Love (3rd Edition) [Amazon Link](https://www.amazon.in/Linux-Kernel-Development-Developers-Library/dp/0672329468)
+2. Understanding the Linux Kernel 3e: From I/O Ports to Process Management [Amazon Link](https://www.amazon.in/Understanding-Linux-Kernel-Daniel-Bovet/dp/0596005652)
+3. Design of the UNIX Operating System by Maurice J. Bach (AT&T Bell Labs) [Amazon Link](https://www.amazon.in/Design-UNIX-Operating-System-1/dp/9332549575/)
+
+> Other readings are mentioned in the respective notes' README.md
