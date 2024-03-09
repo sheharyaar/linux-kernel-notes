@@ -1,7 +1,7 @@
 - [Linux Kernel](#linux-kernel)
   - [Subsystems selected](#subsystems-selected)
   - [Notes](#notes)
-    - [Extras](#extras)
+  - [Extras](#extras)
   - [Readings](#readings)
 
 # Linux Kernel
@@ -23,7 +23,7 @@
 - [Kernel Subsystem APIs](./subsystem-apis.md)
 - [Kernel Testing](./kernel-testing.md)
 
-### Extras
+## Extras
 
 - [Kernel Boot Process](./kernel-boot.md)
 
