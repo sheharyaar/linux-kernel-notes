@@ -226,5 +226,5 @@ For more information checkout [Examining physical memory - QEMU docs](https://qe
 
 ## Extra : Debugging with Syzkaller
 
-> Notes on syzkaller are present in the [Finding Bugs](./finding-bugs.md) section. Those notes are a prerequisite to understand the debugging process with syzkaller.
+Complete notes on syzkaller are present in the [Syzkaller](./syzkaller.md) section.
 

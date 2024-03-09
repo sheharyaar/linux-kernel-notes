@@ -22,10 +22,12 @@
 - [Kernel Core APIs and Concepts](./core-apis.md)
 - [Kernel Subsystem APIs](./subsystem-apis.md)
 - [Kernel Testing](./kernel-testing.md)
+- [Kernel Mentorship Program](./mentorship.md)
 
 ## Extras
 
 - [Kernel Boot Process](./kernel-boot.md)
+- [Syzkaller Notes](./syzkaller.md)
 
 ## Readings
 
