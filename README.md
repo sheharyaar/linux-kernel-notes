@@ -14,9 +14,9 @@
 ## Notes
 
 - [Debugging](./debugging.md)
-  - [Step 1 : Getting and understanding the logs](#step-1--getting-and-understanding-the-logs)
-  - [Step 2 : Debugging with GDB and QEMU/libvirt](#step-2--debugging-with-gdb-and-qemulibvirt)
-  - [Extra : Debugging with Syzkaller](#extra--debugging-with-syzkaller)
+  - [Step 1 : Getting and understanding the logs](./debugging.md#step-1--getting-and-understanding-the-logs)
+  - [Step 2 : Debugging with GDB and QEMU/libvirt](./debugging.md#step-2--debugging-with-gdb-and-qemulibvirt)
+  - [Extra : Debugging with Syzkaller](./debugging.md#extra--debugging-with-syzkaller)
 - [Finding Bugs](./finding-bugs.md)
 - [Event tracing](./tracing.md)
 - [Kernel Core APIs and Concepts](./core-apis.md)
