@@ -7,10 +7,12 @@
     - [OOPs Debugging](#oops-debugging)
     - [References](#references)
   - [Step 2 : Debugging with GDB and QEMU/libvirt](#step-2--debugging-with-gdb-and-qemulibvirt)
-    - [Debugging flow with GDB and QEMU/libvirt](#debugging-flow-with-gdb-and-qemulibvirt)
-    - [Setting up QEMU/libvirt](#setting-up-qemulibvirt)
-    - [Debugging with GDB](#debugging-with-gdb)
+    - [Building the Kernel for GDB Debugging](#building-the-kernel-for-gdb-debugging)
+    - [Starting QEMU and Running VM](#starting-qemu-and-running-vm)
+    - [Linux Provided GDB Helpers](#linux-provided-gdb-helpers)
+    - [QEMU Advanced Options](#qemu-advanced-options)
     - [References](#references-1)
+  - [Extra : Debugging with Syzkaller](#extra--debugging-with-syzkaller)
 
 # Linux Kernel Debugging
 
@@ -119,10 +121,110 @@ CR2: 0000000000000000
    
 ## Step 2 : Debugging with GDB and QEMU/libvirt
 
-### Debugging flow with GDB and QEMU/libvirt
+- QEMU can be used to launch a built kernel and then GDB can be used to attach to the QEMU process and debug the kernel.
+  
+- QEMU supports working with gdb via gdb’s remote-connection facility (the “gdbstub”). Basically this means that QEMU can act as a gdbserver, and gdb can connect to it and debug the kernel running inside the QEMU VM.
+  
+- To launch the kernel with QEMU you require the following components : 
+  - The kernel image (bzImage or zImage)
+  - The filesystem image (rootfs)
+  - Command line arguments to be passed to the kernel
 
-### Setting up QEMU/libvirt
+### Building the Kernel for GDB Debugging
 
-### Debugging with GDB
+1. Kernel configs to enable during build time for easy gdb debugging :
+  - `CONFIG_DEBUG_INFO` : This option includes debugging information in the kernel image. This is useful for debugging the kernel using gdb.
+  - `CONFIG_DEBUG_INFO_SPLIT` : (optional) This significantly reduces the size of the kernel image and kernel modules installed on the device or VM we will be debugging. Note that this option requires a gcc version greater than or equal to version 4.7
+  - `CONFIG_GDB_SCRIPTS` : This option includes a set of gdb scripts that can be used to debug the kernel. Leave `CONFIG_DEBUG_INFO_REDUCED` off to get full debugging information.
+  - `CONFIG_FRAME_POINTER` : Enable this if your architecture supports it. This greatly improves the reliability of backtraces.
+  - `CONFIG_PREEMPT` : This option allows the kernel to be preempted.
+  - `CONFIG_DEBUG_KERNEL` 
+  - `CONFIG_KALLSYMS` : This option includes the kernel symbol table in the kernel image.
+  - `CONFIG_SPINLOCK_SLEEP` : This option allows spinlocks to sleep, which is useful for debugging.
+  - `CONFIG_KGDB`
+  - `CONFIG_DYNAMIC_DEBUG`: This option allows you to dynamically enable/disable kernel debug messages.
+  - `CONFIG_DEBUG_SLAB, CONFIG_DEBUG_VM, etc.`, can be enabled based on the specific areas of the kernel you are interested in.
+
+2. Disable these options to make debugging easier (comment them out or set them "=n"):
+  - `CONFIG_CC_OPTIMIZE_FOR_SIZE`: Disabling this option might be useful as it opts for compiling the kernel with less aggressive optimizations, which makes debugging easier
+  - `CONFIG_RANDOMIZE_BASE`: Disabling **KASLR (Kernel Address Space Layout Randomization)** can make debugging simpler by ensuring that kernel symbols are loaded at consistent addresses between boots.
+
+> Note: If you want to build the kernel for both fuzzing and debugging, include kernel config options from those docs too. Eg - kcov, kasan, kmemleak, etc. Refer to [fuzzing docs](./finding-bugs.md) for more details.
+
+### Starting QEMU and Running VM
+
+1. Run `make gdb_scripts` to build the gdb scripts (required on kernels v5.1 and above).
+   
+2. Start QEMU with the following command : 
+```shell
+qemu-system-x86_64 \
+    -kernel $KERNEL_SRC/arch/x86/boot/bzImage \
+    -append "console=ttyS0,115200 nokaslr" \ 
+    -gdb tcp::1234 \
+    -S
+```
+- `-gdb` tcp::<port> Port to run the gdbserver on
+- `-S` Freeze the CPU on startup (useful for debugging early steps in the kernel)
+- `-kernel` <path> Path to kernel image to debug
+- `-append` <cmdline> Linux kernel command-line parameters. `nokaslr` is used to disable KASLR (Kernel Address Space Layout Randomization).
+
+1. Start gdb: `gdb vmlinux`
+
+> Note: Some distros may restrict auto-loading of gdb scripts to known safe directories. In case gdb reports to refuse loading vmlinux-gdb.py, add: `add-auto-load-safe-path /path/to/linux-build` to `~/.gdbinit`.
+
+### Linux Provided GDB Helpers
+
+The Linux kernel provides a set of gdb helpers to make debugging easier. The number of commands and convenience functions may evolve over the time. To list all the available commands, run `apropos lx`.
+
+```
+(gdb) apropos lx
+function lx_current -- Return current task
+function lx_module -- Find module by name and return the module variable
+function lx_per_cpu -- Return per-cpu variable
+function lx_task_by_pid -- Find Linux task by PID and return the task_struct variable
+function lx_thread_info -- Calculate Linux thread_info from task variable
+lx-dmesg -- Print Linux kernel log buffer
+lx-lsmod -- List currently loaded modules
+lx-symbols -- (Re-)load symbols of Linux kernel and currently loaded modules
+```
+
+- `$lx_current()` can pe used to get the current task. Example to get the pid of current task, you can run : `p $lx_current().pid` or to get the comm of the current task, you can run : `p $lx_current().comm`
+
+- Make use of the per-cpu function for the current or a specified CPU:
+```
+(gdb) p $lx_per_cpu("runqueues").nr_running
+$3 = 1
+(gdb) p $lx_per_cpu("runqueues", 2).nr_running
+$4 = 0
+```
+
+- If you’re setting a breakpoint in vfs_open, but only care about the file named test, you might use something like the following: 
+```
+br vfs_open if $_streq(path.dentry->d_iname, "test")
+```
+
+To view more details, checkout [Examples of using the Linux-provided gdb helpers - Kernel docs](https://www.kernel.org/doc/html/latest/dev-tools/gdb-kernel-debugging.html#examples-of-using-the-linux-provided-gdb-helpers)
+
+### QEMU Advanced Options
+
+If you want to examine/change the physical memory you can set the gdbstub to work with the physical memory rather with the virtual one. The memory mode can be checked by sending the following command:
+
+`maintenance packet qqemu.PhyMemMode` : This will return either 0 or 1, 1 indicates you are currently in the physical memory mode.
+
+`maintenance packet Qqemu.PhyMemMode:1` : This will change the memory mode to physical memory.
+
+`maintenance packet Qqemu.PhyMemMode:0` : This will change it back to normal memory mode.
+
+
+For more information checkout [Examining physical memory - QEMU docs](https://qemu-project.gitlab.io/qemu/system/gdb.html#examining-physical-memory)
 
 ### References
+
+- [Debugging kernel and modules via gdb - Kernel Docs](https://www.kernel.org/doc/html/latest/dev-tools/gdb-kernel-debugging.html)
+- [GDB usage - QEMU](https://qemu-project.gitlab.io/qemu/system/gdb.html)
+- [USING GDB TO DEBUG THE LINUX KERNEL - starlab](https://www.starlab.io/blog/using-gdb-to-debug-the-linux-kernel)
+
+## Extra : Debugging with Syzkaller
+
+> Notes on syzkaller are present in the [Finding Bugs](./finding-bugs.md) section. Those notes are a prerequisite to understand the debugging process with syzkaller.
+

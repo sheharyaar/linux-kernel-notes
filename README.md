@@ -1,6 +1,7 @@
 - [Linux Kernel](#linux-kernel)
   - [Subsystems selected](#subsystems-selected)
   - [Notes](#notes)
+    - [Extras](#extras)
   - [Readings](#readings)
 
 # Linux Kernel
@@ -13,6 +14,18 @@
 ## Notes
 
 - [Debugging](./debugging.md)
+  - [Step 1 : Getting and understanding the logs](#step-1--getting-and-understanding-the-logs)
+  - [Step 2 : Debugging with GDB and QEMU/libvirt](#step-2--debugging-with-gdb-and-qemulibvirt)
+  - [Extra : Debugging with Syzkaller](#extra--debugging-with-syzkaller)
+- [Finding Bugs](./finding-bugs.md)
+- [Event tracing](./tracing.md)
+- [Kernel Core APIs and Concepts](./core-apis.md)
+- [Kernel Subsystem APIs](./subsystem-apis.md)
+- [Kernel Testing](./kernel-testing.md)
+
+### Extras
+
+- [Kernel Boot Process](./kernel-boot.md)
 
 ## Readings
 
