@@ -17,16 +17,16 @@
   - [Step 1 : Getting and understanding the logs](./debugging.md#step-1--getting-and-understanding-the-logs)
   - [Step 2 : Debugging with GDB and QEMU/libvirt](./debugging.md#step-2--debugging-with-gdb-and-qemulibvirt)
   - [Extra : Debugging with Syzkaller](./debugging.md#extra--debugging-with-syzkaller)
-- [Finding Bugs](./finding-bugs.md)
-- [Event tracing](./tracing.md)
-- [Kernel Core APIs and Concepts](./core-apis.md)
-- [Kernel Subsystem APIs](./subsystem-apis.md)
-- [Kernel Testing](./kernel-testing.md)
-- [Kernel Mentorship Program](./mentorship.md)
+- [Finding Bugs](./finding-bugs.md) (*TODO*)
+- [Event tracing](./tracing.md) (*TODO*)
+- [Kernel Core APIs and Concepts](./core-apis.md) (*TODO*)
+- [Kernel Subsystem APIs](./subsystem-apis.md) (*TODO*)
+- [Kernel Testing](./kernel-testing.md) (*TODO*)
+- [Kernel Mentorship Program](./mentorship.md) (*TODO*)
 
 ## Extras
 
-- [Kernel Boot Process](./kernel-boot.md)
+- [Kernel Boot Process](./kernel-boot.md) (*TODO*)
 - [Syzkaller Notes](./syzkaller.md)
 
 ## Readings
