@@ -56,7 +56,9 @@ For more information on how to use gcov, check [Using gcov with Linux Kernel - K
 - It's therefore useful for fuzzing and other situations where information about code executed during, for example, a single syscall is useful.
 
 To enable KCOV, configure the kernel with: `CONFIG_KCOV=y`
+
 To enable comparison operands collection, set: `CONFIG_KCOV_ENABLE_COMPARISONS=y`
+
 Coverage data only becomes accessible once debugfs has been mounted: `mount -t debugfs none /sys/kernel/debug`
 
 For more information on how to use kcov, check [KCOV: code coverage for fuzzing - Kernel Docs](https://www.kernel.org/doc/html/latest/dev-tools/kcov.html)
