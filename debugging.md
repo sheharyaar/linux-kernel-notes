@@ -116,12 +116,13 @@ CR2: 0000000000000000
 
 ### References
 
-1. [Debugging Analysis of Kernel panics and Kernel oopses using System Map - Sanjeev Sharma Blog](https://sanjeev1sharma.wordpress.com/tag/debug-kernel-panics/)
-2. [Understanding a Kernel Oops! - Opensourceforu.com](https://www.opensourceforu.com/2011/01/understanding-a-kernel-oops/)
+- [Debugging Techniques - Linux Device Drivers (LDD3)](https://static.lwn.net/images/pdf/LDD3/ch04.pdf)
+- [Debugging Analysis of Kernel panics and Kernel oopses using System Map - Sanjeev Sharma Blog](https://sanjeev1sharma.wordpress.com/tag/debug-kernel-panics/)
+- [Understanding a Kernel Oops! - Opensourceforu.com](https://www.opensourceforu.com/2011/01/understanding-a-kernel-oops/)
    
 ## Step 2 : Debugging with GDB and QEMU/libvirt
 
-- QEMU can be used to launch a built kernel and then GDB can be used to attach to the QEMU process and debug the kernel.
+- QEMU can be used to launch a built kernel and then GDB can be used to attach to the QEMU process and debug the kernel. Remember you should use `gdb` when a target hardware is not available. If you have a target hardware, you should use `kgdb` instead. See : [Using kgdb, kdb and the kernel debugger internals](https://www.kernel.org/doc/html/latest/dev-tools/kgdb.html)
   
 - QEMU supports working with gdb via gdb’s remote-connection facility (the “gdbstub”). Basically this means that QEMU can act as a gdbserver, and gdb can connect to it and debug the kernel running inside the QEMU VM.
   
@@ -150,6 +151,16 @@ CR2: 0000000000000000
   - `CONFIG_RANDOMIZE_BASE`: Disabling **KASLR (Kernel Address Space Layout Randomization)** can make debugging simpler by ensuring that kernel symbols are loaded at consistent addresses between boots.
 
 > Note: If you want to build the kernel for both fuzzing and debugging, include kernel config options from those docs too. Eg - kcov, kasan, kmemleak, etc. Refer to [fuzzing docs](./finding-bugs.md) for more details.
+
+If you want to add kgdb and kdb support use :
+```
+# CONFIG_STRICT_KERNEL_RWX is not set
+CONFIG_FRAME_POINTER=y
+CONFIG_KGDB=y
+CONFIG_KGDB_SERIAL_CONSOLE=y
+CONFIG_KGDB_KDB=y
+CONFIG_KDB_KEYBOARD=y
+```
 
 ### Starting QEMU and Running VM
 
@@ -220,9 +231,13 @@ For more information checkout [Examining physical memory - QEMU docs](https://qe
 
 ### References
 
+- [Linux Device Drivers (LDD3) Chapter 4](https://static.lwn.net/images/pdf/LDD3/ch04.pdf)
 - [Debugging kernel and modules via gdb - Kernel Docs](https://www.kernel.org/doc/html/latest/dev-tools/gdb-kernel-debugging.html)
 - [GDB usage - QEMU](https://qemu-project.gitlab.io/qemu/system/gdb.html)
 - [USING GDB TO DEBUG THE LINUX KERNEL - starlab](https://www.starlab.io/blog/using-gdb-to-debug-the-linux-kernel)
+- [Kernel address space layout randomization (KASLR) - LWN](https://lwn.net/Articles/569635/)
+- [Debugging Techniques - Linux Device Drivers (LDD3)](https://static.lwn.net/images/pdf/LDD3/ch04.pdf)
+- [Debugging the Linux kernel with GDB - Sergio Prado](https://sergioprado.blog/debugging-the-linux-kernel-with-gdb/)
 
 ## Extra : Debugging with Syzkaller
 

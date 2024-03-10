@@ -1,10 +1,10 @@
 - [Syzkaller](#syzkaller)
-  - [Building Kernel for Syzbot](#building-kernel-for-syzbot)
-  - [Build FS Image](#build-fs-image)
-  - [Running QEMU](#running-qemu)
-    - [Troubleshooting](#troubleshooting)
-  - [Build Syzkaller](#build-syzkaller)
-  - [References](#references)
+	- [Building Kernel for Syzbot](#building-kernel-for-syzbot)
+	- [Build FS Image](#build-fs-image)
+	- [Running QEMU](#running-qemu)
+		- [Troubleshooting](#troubleshooting)
+	- [Build Syzkaller](#build-syzkaller)
+	- [References](#references)
 
 # Syzkaller
 
