@@ -15,15 +15,25 @@
     - [Autotest and (Avocado)](#autotest-and-avocado)
     - [References](#references-2)
   - [Dynamic Tools](#dynamic-tools)
+    - [CONFIGs for debugging](#configs-for-debugging)
+    - [KASAN (KernelAddressSANitizer)](#kasan-kerneladdresssanitizer)
+    - [KFENCE (Kernel Electric Fence)](#kfence-kernel-electric-fence)
+    - [KMSAN (Kernel Memory Sanitizer)](#kmsan-kernel-memory-sanitizer)
+    - [UBSAN (Undefined Behavior Sanitizer)](#ubsan-undefined-behavior-sanitizer)
+    - [Kernel Memory Leak Detector](#kernel-memory-leak-detector)
+    - [KCSAN (Kernel Concurrency Sanitizer)](#kcsan-kernel-concurrency-sanitizer)
     - [References](#references-3)
   - [Extras](#extras)
     - [KernelCI](#kernelci)
+    - [Sanitizers for C/C++ Programs](#sanitizers-for-cc-programs)
 
 # Finding Bugs
 
 The Linux Kernel is a complex piece of software, and it's not uncommon to find bugs in it. There are several tools and techniques that can be used to find bugs in the kernel.
 
 This document will cover some of the tools and techniques that can be used to find bugs in the kernel. For susbsystem specific tools, refer to the respective subsystem documentation.
+
+![finding-bugs-techniques-comparison](./assets/finding-bugs-1.png)
 
 ## Code Coverage Tools
 
@@ -169,9 +179,114 @@ For more options, check : [Coccinelle - Kernel Docs](https://www.kernel.org/doc/
 
 ## Dynamic Tools
 
+### CONFIGs for debugging
+
+The following configs can help debugging the kernel:
+
+- `CONFIG_DEBUG_LIST=y` detects list corruption in the kernel.
+- `CONFIG_FORTIFY_SOURCE=y` detects buffer overflows.
+
+A really **good resource of complete list** - [Kernel Self Protection Project/Recommended Settings](https://kernsec.org/wiki/index.php/Kernel_Self_Protection_Project/Recommended_Settings#CONFIGs)
+
+- Once the crash log is obtained, it can be analyzed using `scripts/decode_stacktrace.sh` to get a human-readable stack trace.
+
+```shell
+$ scripts/decode_stacktrace.sh vimlinux < path-to-crash-log
+```
+
+### KASAN (KernelAddressSANitizer)
+
+- Detects :
+  - Out-of-bounds access to heap, stack, and globals
+  - Use-after-free
+  - no false positives
+  - `CONFIG_KASAN=y` enables KASAN in the kernel.
+
+- Prints a report when a bug is detected, and the system is halted. The report includes the stack trace and the source code line that caused the bug.
+
+- Uses the concept of **shadow memory** to keep track of the memory allocated to the kernel. For 8 bytes of memory, KASAN uses **1 byte** of shadow memory to store the number of good bytes.
+
+![KASAN shadow bytes](./assets/kasan-1.png)
+
+- The KASAN shadow bytes is present in the Virtual Address of the Kernel as :
+![KASAN in virtual memory](./assets/kasan-2.png)
+
+- Red-zones around heap objects :
+![KASAN Red-zone around heaps](./assets/kasan-3.png)
+
+- Quarantine for heap objects, till the delay, the **shadow of that byte** is set to bad:
+![KASAN Quarantine for heap objects](./assets/kasan-4.png)
+
+- Compiler side implementation :
+![KASAN Compiler Side implementation](./assets/kasan-5.png)
+
+For KASAN options and details, rerfer [Kernel Address Sanitizer (KASAN) - Kernel Docs](https://www.kernel.org/doc/html/latest/dev-tools/kasan.html)
+
+### KFENCE (Kernel Electric Fence)
+
+- **Low-overhead** sampling-based memory safety error detector. 
+- KFENCE detects heap out-of-bounds access, use-after-free, and invalid-free errors.
+- It is designed to be enabled in production kernels, and has near zero performance overhead.
+- KFENCE **trades performance for precision**. The main motivation behind KFENCE's design, is that w**ith enough total uptime KFENCE will detect bugs in code paths not typically exercised by non-production test workloads**. 
+- One way to quickly achieve a large enough total uptime is when the tool is deployed across a large fleet of machines.
+
+- KFENCE also uses guard pages, so there is a little memory overhead.
+![KFENCE guard pages](kfence-1.png)
+
+For more information, refer [Kernel Electric Fence (KFENCE) - Kernel Docs](https://www.kernel.org/doc/html/latest/dev-tools/kfence.html)
+
+### KMSAN (Kernel Memory Sanitizer)
+
+- KMSAN is a dynamic error detector aimed at finding uses of uninitialized values. 
+- It is based on compiler instrumentation, and is quite similar to the userspace MemorySanitizer tool.
+- An important note is that KMSAN is **not intended for production use**, because it drastically increases kernel memory footprint and slows the whole system down.
+
+For more information, refer [Kernel Memory Sanitizer (KMSAN) - Kernel Docs](https://www.kernel.org/doc/html/latest/dev-tools/kmsan.html)
+
+### UBSAN (Undefined Behavior Sanitizer)
+
+- UBSAN is a runtime undefined behaviour checker.
+- UBSAN uses compile-time instrumentation to catch undefined behavior (UB). 
+- Compiler inserts code that perform certain kinds of checks before operations that may cause UB. If check fails (i.e. UB detected) `__ubsan_handle_*` function called to print error message.
+
+For more information, refer [Undefined Behavior Sanitizer (UBSAN) - Kernel Docs](https://www.kernel.org/doc/html/latest/dev-tools/ubsan.html)
+
+### Kernel Memory Leak Detector
+
+- Kmemleak provides a way of detecting possible kernel memory leaks in a way similar to a tracing garbage collector, with the difference that the orphan objects are not freed but only reported via /sys/kernel/debug/kmemleak. 
+- A similar method is used by the Valgrind tool (memcheck --leak-check) to detect the memory leaks in user-space applications.
+
+**Algorithm :**
+
+- The memory allocations via **kmalloc(), vmalloc(), kmem_cache_alloc()** and friends are traced and the pointers, together with additional information like size and stack trace, are stored in a rbtree. The corresponding freeing function calls are tracked and the pointers removed from the kmemleak data structures.
+
+- An allocated block of memory is considered **orphan** if no pointer to its start address or to any location inside the block can be found by scanning the memory (including saved registers). This means that there might be no way for the kernel to pass the address of the allocated block to a freeing function and therefore the block is considered a memory leak.
+
+The scanning algorithm steps:
+
+1. mark all objects as **white** (remaining white objects will later be considered orphan)
+2. scan the memory starting with the data section and stacks, checking the values against the addresses stored in the rbtree. If a pointer to a white object is found, the object is added to the gray list
+3. scan the gray objects for matching addresses (some white objects can become gray and added at the end of the gray list) until the gray set is finished
+4. the remaining white objects are considered orphan and reported via `/sys/kernel/debug/kmemleak`
+
+For more information, refer [Kernel Memory Leak Detector (Kmemleak) - Kernel Docs](https://www.kernel.org/doc/html/latest/dev-tools/kmemleak.html)
+
+### KCSAN (Kernel Concurrency Sanitizer) 
+
+- Dynamic race detector, which relies on compile-time instrumentation, and uses a watchpoint-based sampling approach to detect races.
+
+- KCSAN is aware of marked atomic operations (READ_ONCE, WRITE_ONCE, atomic_*, etc.), and a subset of ordering guarantees implied by memory barriers. With CONFIG_KCSAN_WEAK_MEMORY=y, KCSAN models load or store buffering, and can detect missing smp_mb(), smp_wmb(), smp_rmb(), smp_store_release(), and all atomic_* operations with equivalent implied barriers.
+  
+- KCSAN will not report all data races due to missing memory ordering, specifically where a memory barrier would be required to prohibit subsequent memory operation from reordering before the barrier. 
+  
+> Developers should therefore carefully consider the required memory ordering requirements that remain unchecked.
+
+For more information, refer [Kernel Concurrency Sanitizer (KCSAN) - Kernel Docs](https://www.kernel.org/doc/html/latest/dev-tools/kcsan.html)
+
 ### References
 
 - [A better workflow for kernel debugging - Blog by Ricardo B. Marliere](https://marliere.net/posts/2/)
+- [Kernel Self Protection Project/Recommended Settings](https://kernsec.org/wiki/index.php/Kernel_Self_Protection_Project/Recommended_Settings#CONFIGs)
 
 ## Extras
 
@@ -182,3 +297,27 @@ For more options, check : [Coccinelle - Kernel Docs](https://www.kernel.org/doc/
 - The project is supported by several companies and organizations, including Linaro, Collabora, Red Hat, Google, and many others.
 
 Homepage : [KernelCI](https://kernelci.org/)
+
+
+### Sanitizers for C/C++ Programs
+
+- [AddressSanitizer](https://github.com/google/sanitizers/wiki/AddressSanitizer)
+  - It finds:
+    - Use after free (dangling pointer dereference)
+    - Heap buffer overflow
+    - Stack buffer overflow
+    - Global buffer overflow
+    - Use after return
+    - Use after scope
+    - Initialization order bugs
+    - Memory leaks
+  - AddressSanitizer is a part of LLVM starting with version 3.1 and a part of GCC starting with version 4.8 
+
+- [ThreadSanitizer](https://clang.llvm.org/docs/ThreadSanitizer.html)
+  - ThreadSanitizer is a tool that detects data races. It consists of a compiler instrumentation module and a run-time library. 
+  - Typical slowdown introduced by ThreadSanitizer is about 5x-15x. Typical memory overhead introduced by ThreadSanitizer is about 5x-10x.
+
+- [MemorySanitizer](https://github.com/google/sanitizers/wiki/MemorySanitizer)
+  - MemorySanitizer (MSan) is a detector of uninitialized memory reads in C/C++ programs.
+  - Uninitialized values occur when stack- or heap-allocated memory is read before it is written. MSan detects cases where such values affect program execution.
+  - MSan is **bit-exact**: it can track uninitialized bits in a bitfield. It will tolerate copying of uninitialized memory, and also simple logic and arithmetic operations with it. 

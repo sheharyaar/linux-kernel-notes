@@ -12,7 +12,11 @@
     - [Linux Provided GDB Helpers](#linux-provided-gdb-helpers)
     - [QEMU Advanced Options](#qemu-advanced-options)
     - [References](#references-1)
-  - [Extra : Debugging with Syzkaller](#extra--debugging-with-syzkaller)
+  - [Extras](#extras)
+    - [Hung Kernel](#hung-kernel)
+    - [Memory Leaks in Userspace : Valgrind](#memory-leaks-in-userspace--valgrind)
+    - [Debugging with Syzkaller](#debugging-with-syzkaller)
+    - [Debugging with KDB](#debugging-with-kdb)
 
 # Linux Kernel Debugging
 
@@ -239,7 +243,31 @@ For more information checkout [Examining physical memory - QEMU docs](https://qe
 - [Debugging Techniques - Linux Device Drivers (LDD3)](https://static.lwn.net/images/pdf/LDD3/ch04.pdf)
 - [Debugging the Linux kernel with GDB - Sergio Prado](https://sergioprado.blog/debugging-the-linux-kernel-with-gdb/)
 
-## Extra : Debugging with Syzkaller
+## Extras
+
+### Hung Kernel
+
+If the kernel hangs on executing a code in the kernel, then the following config options can be used to debug the issue :
+
+```conf
+CONFIG_SOFTLOCKUP_DETECTOR=y
+CONFIG_HUNG_TASK=y
+```
+
+After a few seconds (~30s), the kernel generates an Oops and prints the stack trace of the hung task. You can then debug the issue using the same techniques as mentioned in the OOPs Debugging section.
+
+### Memory Leaks in Userspace : Valgrind
+
+- Compile the binary with symbols
+- Run the binary with valgrind
+- Valgrind generates a report of the memory leaks and the stack trace of the memory allocation
+
+### Debugging with Syzkaller
 
 Complete notes on syzkaller are present in the [Syzkaller](./syzkaller.md) section.
 
+### Debugging with KDB
+
+- If kGDB is not available, then KDB can be used to debug the kernel. KDB is a kernel debugger that can be used to debug the kernel in case of a kernel panic or a hung kernel.
+
+For more information on KDB usage, refer [Using kgdb, kdb and the kernel debugger internals](https://www.kernel.org/doc/html/latest/dev-tools/kgdb.html)
