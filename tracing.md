@@ -2,15 +2,18 @@
   - [Userspace tools](#userspace-tools)
     - [strace and ltrace](#strace-and-ltrace)
   - [Kernelspace tools](#kernelspace-tools)
-    - [tracefs](#tracefs)
-    - [ftrace](#ftrace)
-      - [Tracepoints](#tracepoints)
-    - [kprobes](#kprobes)
-    - [uprobes](#uprobes)
-    - [perf](#perf)
-    - [eBPF](#ebpf)
-    - [How perf, krpobe and tracefs relate](#how-perf-krpobe-and-tracefs-relate)
-    - [Persistance Store Support](#persistance-store-support)
+    - [Introdution](#introdution)
+    - [Data Sources](#data-sources)
+      - [tracepoints](#tracepoints)
+      - [kprobes](#kprobes)
+      - [uprobes](#uprobes)
+    - [Data Extraction from sources](#data-extraction-from-sources)
+      - [tracefs](#tracefs)
+      - [ftrace](#ftrace)
+      - [perf](#perf)
+      - [eBPF](#ebpf)
+      - [systemtap](#systemtap)
+    - [How perf, krpobe, tracefs and other tools relate](#how-perf-krpobe-tracefs-and-other-tools-relate)
     - [References](#references)
 - [References](#references-1)
 
@@ -48,7 +51,81 @@ write(1, " edited-2.jpg~\t ns3  'WhatsApp I"..., 69 edited-2.jpg~	 ns3  'WhatsAp
 
 ## Kernelspace tools
 
-### tracefs
+### Introdution
+
+Tracing can be divided into number of components :
+1. Data sources
+2. Ways to get the data to userspace
+3. Frontends for these data sources in userspace
+
+By frontend we mean the tool that you use to look at the data. For example, perf is a frontend for the kernel's performance counters, and ftrace is a frontend for the kernel's trace events (more on these later).
+
+### Data Sources
+
+There are generally two categories of data sources in the kernel:
+1. **probes :** This is when the kernel **dynamically modifies your assembly program** at **runtime** (like, it changes the instructions) in order to enable tracing. This is super powerful because you can **enable a probe on literally any instruction** in the program you’re tracing. [Kprobes](#kprobes) and [uprobes](#uprobes) are examples of this pattern.
+   
+2. **tracepoints :** This is something you **compile into your program**. When someone using your program wants to see when that tracepoint is hit and extract data, they can “enable” or “activate” the tracepoint to start using it. Generally a tracepoint in this sense doesn’t cause any extra overhead when it’s not activated, and is relatively **low overhead when it is activated**. USDT (“dtrace probes”), lttng-ust, and [kernel tracepoints](#tracepoints) are all examples of this pattern.
+
+#### tracepoints
+
+- Tracepoints can be used without creating custom kernel modules to register probe functions using the event tracing infrastructure.
+  
+- To enable a particular event, simply echo it to /sys/kernel/tracing/set_event. 
+
+Example : 
+- Step 1 : we will enable an event syscalls:sys_enter_getpeername in our case, this will generate a trace every time getpeername() is executed. This function is used for making DNS queries : 
+- Step 2 : we will listen on the trace_pipe in another terminal
+- Step 3 : We will make a DNS query using dig program : dig www.httpbin.org
+- Step 4 : We will disable tracing by echoing an empty string to the file
+
+```shell
+echo "syscalls:sys_enter_getpeername" > set_event
+cat trace_pipe
+ <...>-570949  [007] ..... 28732.695686: sys_getpeername(fd: f, usockaddr: c001784ae8, usockaddr_len: c001784ae4)
+ <...>-570956  [001] ..... 28732.695731: sys_getpeername(fd: 1c, usockaddr: c000aacae8, usockaddr_len: c000aacae4)
+ <...>-570957  [005] ..... 28732.695735: sys_getpeername(fd: 1b, usockaddr: c000ab0ae8, usockaddr_len: c000ab0ae4)
+ <...>-570953  [002] ..... 28732.699574: sys_getpeername(fd: 1c, usockaddr: c000aacae8, usockaddr_len: c000aacae4)
+ <...>-570947  [004] ..... 28732.700133: sys_getpeername(fd: f, usockaddr: c001784ae8, usockaddr_len: c001784ae4)
+^C⏎
+echo "" > set_event
+```
+
+**From the events directory**: events directory has a file named enable, if you echo 1 to the file, the event is enabled to be traced.
+
+```shell
+root@rog /s/k/tracing# cd events/syscalls/sys_enter_getpeername/
+root@rog /s/k/t/e/s/sys_enter_getpeername# ls
+enable  filter  format  hist  id  trigger
+root@rog /s/k/t/e/s/sys_enter_getpeername# echo 1 > enable
+```
+
+#### kprobes
+
+- kprobes let you dynamically change the **Linux kernel’s assembly code at runtime** (like, insert extra assembly instructions) to trace when a given instruction is called. 
+- We of kprobes as tracing Linux kernel function calls, but you can actually **trace any instruction inside the kernel and inspect the registers**.
+- [Brendan Gregg KProbe Script](https://github.com/brendangregg/perf-tools/blob/master/kernel/kprobe) to play around with kprobes
+- Can be added and removed dynamically, on the fly. To enable this feature, build your kernel with `CONFIG_KPROBE_EVENTS=y`.
+- Doesn’t need to be activated via current_tracer. Instead of that, add probe points via /sys/kernel/debug/tracing/kprobe_events, and enable it via `/sys/kernel/debug/tracing/events/kprobes/<EVENT>/enable`.
+
+Useful in scenarios like :
+1. You’re tracing a system call. System calls all have corresponding kernel functions like `do_sys_open` 
+2. You’re debugging some performance issue in the network stack or to do with file I/O and you understand the kernel functions that are called well enough that it’s useful for you to trace them 
+3. You’re a kernel developer,or you’re otherwise trying to debug a kernel bug, which happens sometimes!!
+
+#### uprobes
+
+- Uprobe based trace events are similar to kprobe based trace events. To enable this feature, build your kernel with `CONFIG_UPROBE_EVENTS=y`.
+
+- Add probe points via /sys/kernel/debug/tracing/uprobe_events, and enable it via /`sys/kernel/debug/tracing/events/uprobes/<EVENT>/enable`
+
+- However unlike kprobe-event tracer, the uprobe event interface expects the user to calculate the offset of the probepoint in the object.
+  
+### Data Extraction from sources
+
+It’s important to understand the fundamental mechanisms by which tracing data gets out of the kernel. Theses are : ftrace, perf_events, eBPF, systemtap, and lttng.
+
+#### tracefs
 
 - tracefs is a pseudo file system that provides an interface to the kernel's trace events
 - tracefs is mounted at /sys/kernel/tracing
@@ -56,7 +133,9 @@ write(1, " edited-2.jpg~\t ns3  'WhatsApp I"..., 69 edited-2.jpg~	 ns3  'WhatsAp
 - tracefs can be mount using `mount -t tracefs nodev /sys/kernel/tracing `
 **Note** : For backward compatibility, when mounting the debugfs file system, the tracefs file system will be automatically mounted at: `/sys/kernel/debug/tracing`
 
-### ftrace
+#### ftrace
+
+- Ftrace is a tracing tool that is built into the Linux kernel. It is used to trace the kernel function calls and events.
 
 Some files available under /sys/kernel/tracing : 
 
@@ -115,76 +194,62 @@ cat /sys/kernel/tracing/available_tracers
 timerlat osnoise hwlat blk mmiotrace function_graph wakeup_dl wakeup_rt wakeup function nop
 ```
 
-#### Tracepoints
-
-- Tracepoints can be used without creating custom kernel modules to register probe functions using the event tracing infrastructure.
-  
-- To enable a particular event, simply echo it to /sys/kernel/tracing/set_event. 
-
-Example : 
-- Step 1 : we will enable an event syscalls:sys_enter_getpeername in our case, this will generate a trace every time getpeername() is executed. This function is used for making DNS queries : 
-- Step 2 : we will listen on the trace_pipe in another terminal
-- Step 3 : We will make a DNS query using dig program : dig www.httpbin.org
-- Step 4 : We will disable tracing by echoing an empty string to the file
-
-```shell
-echo "syscalls:sys_enter_getpeername" > set_event
-cat trace_pipe
- <...>-570949  [007] ..... 28732.695686: sys_getpeername(fd: f, usockaddr: c001784ae8, usockaddr_len: c001784ae4)
- <...>-570956  [001] ..... 28732.695731: sys_getpeername(fd: 1c, usockaddr: c000aacae8, usockaddr_len: c000aacae4)
- <...>-570957  [005] ..... 28732.695735: sys_getpeername(fd: 1b, usockaddr: c000ab0ae8, usockaddr_len: c000ab0ae4)
- <...>-570953  [002] ..... 28732.699574: sys_getpeername(fd: 1c, usockaddr: c000aacae8, usockaddr_len: c000aacae4)
- <...>-570947  [004] ..... 28732.700133: sys_getpeername(fd: f, usockaddr: c001784ae8, usockaddr_len: c001784ae4)
-^C⏎
-echo "" > set_event
-```
-
-**From the events directory**: events directory has a file named enable, if you echo 1 to the file, the event is enabled to be traced.
-
-```shell
-root@rog /s/k/tracing# cd events/syscalls/sys_enter_getpeername/
-root@rog /s/k/t/e/s/sys_enter_getpeername# ls
-enable  filter  format  hist  id  trigger
-root@rog /s/k/t/e/s/sys_enter_getpeername# echo 1 > enable
-```
-
-### kprobes
-
-- Based on kprobes (kprobe and kretprobe). It can probe entry and exit of a kernel function.
-
-- Can be added and removed dynamically, on the fly. To enable this feature, build your kernel with `CONFIG_KPROBE_EVENTS=y`.
-
-- Doesn’t need to be activated via current_tracer. Instead of that, add probe points via /sys/kernel/debug/tracing/kprobe_events, and enable it via `/sys/kernel/debug/tracing/events/kprobes/<EVENT>/enable`.
-
-### uprobes
-
-- Uprobe based trace events are similar to kprobe based trace events. To enable this feature, build your kernel with `CONFIG_UPROBE_EVENTS=y`.
-
-- Add probe points via /sys/kernel/debug/tracing/uprobe_events, and enable it via /`sys/kernel/debug/tracing/events/uprobes/<EVENT>/enable`
-
-- However unlike kprobe-event tracer, the uprobe event interface expects the user to calculate the offset of the probepoint in the object.
-  
-### perf
+#### perf
 
 - Profiler tool for Linux, part of the Linux kernel tools.
 - Identifying CPU-bound bottlenecks, cache misses, and branch mispredictions.
 - Profiling both userspace and kernelspace code to understand overall system performance.
 - Uses hardware counters and software events to collect data. It's directly integrated with the CPU's performance monitoring capabilities, allowing it to gather detailed metrics about hardware and application performance.
 
-### eBPF
+Working : 
+- You call the perf_event_open system call
+- The kernel writes events to a ring buffer in user memory, which you can read from
 
-eBPF is a large topic and is covered in [eBPF section](./ebpf-tracing.md)
+#### eBPF
 
-### How perf, krpobe and tracefs relate
+eBPF is a large topic and is covered in-depth in the [eBPF section](./ebpf-tracing.md)
 
-### Persistance Store Support
+#### systemtap
+
+- You decide you want to trace a kprobe
+- You write a “systemtap program” & compile it into a kernel module
+- That kernel module, when inserted, creates kprobes that call code from your kernel module when triggered (it calls `register_kprobe`)
+- You kernel modules prints output to userspace (using relayfs or something)
+
+TODO: Study the document and complete this section [https://sourceware.org/systemtap/archpaper.pdf](https://sourceware.org/systemtap/archpaper.pdf) and [https://www.brendangregg.com/blog/2015-07-08/choosing-a-linux-tracer.html](https://www.brendangregg.com/blog/2015-07-08/choosing-a-linux-tracer.html)
+
+**SystemTap supports**: tracepoints, kprobes, uprobes, USDT
+
+### How perf, krpobe, tracefs and other tools relate
+
+![Relationship between tracing toolsw](./assets/tracing-1.png)
+Credits: Julia Evans
+
+**Data Sources :**
+![Data sources in tracing](./assets/tracing-2.png)
+Credits: Julia Evans
+
+**Ways to extract data :**
+![alt text](./assets/tracing-3.png)
+![alt text](./assets/tracing-4.png)
+Credits: Julia Evans
+
+**Tracing frontends :**
+
+![alt text](./assets/tracing-5.png)
+![alt text](./assets/tracing-6.png)
+Credits: Julia Evans
 
 ### References
 
-- [Notes on BPF & eBPF - Julia Evans](https://jvns.ca/blog/2017/06/28/notes-on-bpf---ebpf/)
+- [An introduction to KProbes - LWN](https://lwn.net/Articles/132196/)
+- [Brendan Gregg KProbe Script](https://github.com/brendangregg/perf-tools/blob/master/kernel/kprobe)
+- [Linux uprobe - Brendan Gregg](https://www.brendangregg.com/blog/2015-06-28/linux-ftrace-uprobe.html)
+- [Using the TRACE_EVENT() macro (Part 1) - LWN](https://lwn.net/Articles/379903/)
 - [Linux tracing systems & how they fit together - Julia Evans](https://jvns.ca/blog/2017/07/05/linux-tracing-systems/)
 
 # References
+
 - [Event Tracing - Kernel Doc](https://www.kernel.org/doc/html/latest/trace/events.html)
 - [Tracing the Linux kernel with ftrace](https://sergioprado.blog/tracing-the-linux-kernel-with-ftrace/)
 - [Mentorship Session: Tools and Techniques to Debug an Embedded Linux System](https://www.youtube.com/watch?v=Paf-1I7ZUTo)
