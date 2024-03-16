@@ -13,7 +13,6 @@
       - [perf](#perf)
       - [eBPF](#ebpf)
       - [systemtap](#systemtap)
-    - [How perf, krpobe, tracefs and other tools relate](#how-perf-krpobe-tracefs-and-other-tools-relate)
     - [References](#references)
 - [References](#references-1)
 
@@ -60,12 +59,18 @@ Tracing can be divided into number of components :
 
 By frontend we mean the tool that you use to look at the data. For example, perf is a frontend for the kernel's performance counters, and ftrace is a frontend for the kernel's trace events (more on these later).
 
+![Relationship between tracing toolsw](./assets/tracing-1.png)
+Credits: Julia Evans
+
 ### Data Sources
 
 There are generally two categories of data sources in the kernel:
 1. **probes :** This is when the kernel **dynamically modifies your assembly program** at **runtime** (like, it changes the instructions) in order to enable tracing. This is super powerful because you can **enable a probe on literally any instruction** in the program you’re tracing. [Kprobes](#kprobes) and [uprobes](#uprobes) are examples of this pattern.
    
 2. **tracepoints :** This is something you **compile into your program**. When someone using your program wants to see when that tracepoint is hit and extract data, they can “enable” or “activate” the tracepoint to start using it. Generally a tracepoint in this sense doesn’t cause any extra overhead when it’s not activated, and is relatively **low overhead when it is activated**. USDT (“dtrace probes”), lttng-ust, and [kernel tracepoints](#tracepoints) are all examples of this pattern.
+
+![Data sources in tracing](./assets/tracing-2.png)
+Credits: Julia Evans
 
 #### tracepoints
 
@@ -124,6 +129,17 @@ Useful in scenarios like :
 ### Data Extraction from sources
 
 It’s important to understand the fundamental mechanisms by which tracing data gets out of the kernel. Theses are : ftrace, perf_events, eBPF, systemtap, and lttng.
+
+**Ways to extract data :**
+![alt text](./assets/tracing-3.png)
+![alt text](./assets/tracing-4.png)
+Credits: Julia Evans
+
+**Tracing frontends :**
+
+![alt text](./assets/tracing-5.png)
+![alt text](./assets/tracing-6.png)
+Credits: Julia Evans
 
 #### tracefs
 
@@ -219,26 +235,6 @@ eBPF is a large topic and is covered in-depth in the [eBPF section](./ebpf-traci
 TODO: Study the document and complete this section [https://sourceware.org/systemtap/archpaper.pdf](https://sourceware.org/systemtap/archpaper.pdf) and [https://www.brendangregg.com/blog/2015-07-08/choosing-a-linux-tracer.html](https://www.brendangregg.com/blog/2015-07-08/choosing-a-linux-tracer.html)
 
 **SystemTap supports**: tracepoints, kprobes, uprobes, USDT
-
-### How perf, krpobe, tracefs and other tools relate
-
-![Relationship between tracing toolsw](./assets/tracing-1.png)
-Credits: Julia Evans
-
-**Data Sources :**
-![Data sources in tracing](./assets/tracing-2.png)
-Credits: Julia Evans
-
-**Ways to extract data :**
-![alt text](./assets/tracing-3.png)
-![alt text](./assets/tracing-4.png)
-Credits: Julia Evans
-
-**Tracing frontends :**
-
-![alt text](./assets/tracing-5.png)
-![alt text](./assets/tracing-6.png)
-Credits: Julia Evans
 
 ### References
 
