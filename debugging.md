@@ -222,7 +222,7 @@ To view more details, checkout [Examples of using the Linux-provided gdb helpers
 
 ### QEMU Advanced Options
 
-If you want to examine/change the physical memory you can set the gdbstub to work with the physical memory rather with the virtual one. The memory mode can be checked by sending the following command:
+If you want to examine/chyourange the physical memory you can set the gdbstub to work with the physical memory rather with the virtual one. The memory mode can be checked by sending the following command:
 
 `maintenance packet qqemu.PhyMemMode` : This will return either 0 or 1, 1 indicates you are currently in the physical memory mode.
 

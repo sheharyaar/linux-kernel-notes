@@ -220,7 +220,7 @@ $ scripts/decode_stacktrace.sh vimlinux < path-to-crash-log
 - Compiler side implementation :
 ![KASAN Compiler Side implementation](./assets/kasan-5.png)
 
-For KASAN options and details, rerfer [Kernel Address Sanitizer (KASAN) - Kernel Docs](https://www.kernel.org/doc/html/latest/dev-tools/kasan.html)
+For KASAN options and details, refer [Kernel Address Sanitizer (KASAN) - Kernel Docs](https://www.kernel.org/doc/html/latest/dev-tools/kasan.html)
 
 ### KFENCE (Kernel Electric Fence)
 
@@ -231,7 +231,7 @@ For KASAN options and details, rerfer [Kernel Address Sanitizer (KASAN) - Kernel
 - One way to quickly achieve a large enough total uptime is when the tool is deployed across a large fleet of machines.
 
 - KFENCE also uses guard pages, so there is a little memory overhead.
-![KFENCE guard pages](kfence-1.png)
+![KFENCE guard pages](./assets/kfence-1.png)
 
 For more information, refer [Kernel Electric Fence (KFENCE) - Kernel Docs](https://www.kernel.org/doc/html/latest/dev-tools/kfence.html)
 
