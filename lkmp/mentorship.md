@@ -1,8 +1,8 @@
-- [Linux Kernel Mentorship](#linux-kernel-mentorship)
-  - [References](#references)
-
-
 # Linux Kernel Mentorship
+
+See the following resources for mentorship in Linux Kernel development:
+- Prerequisites [here](./Prerequisites.md)
+- Setting up for kernel development [here](./setup.md)
 
 ## References
 
