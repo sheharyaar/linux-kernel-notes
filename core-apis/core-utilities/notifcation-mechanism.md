@@ -2,7 +2,7 @@
 
  - Built on top of the standard pipe driver
  - can be enabled by `CONFIG_WATCH_QUEUE`
- - [splicing]() is disabled on these pipes to prevent inter-leaving of kernel messages
+ - [splicing](../../implementations/pipes.md#splice) is disabled on these pipes to prevent inter-leaving of kernel messages
  - owner of the pipe has to tell the kernel, the sources from which it would like to get notifications
  - a message will be discarded if there isn’t a slot available in the ring or if no preallocated message buffer is available. In both of these cases
  - the kernel **does not wait** for the consumers to collect it, but rather just continues on. 

@@ -78,7 +78,7 @@ The steps to make a system call are :
 
 ## Step 2 : Entry function
 
-The C code for this is present under `arch/x86/entry/common.c`. The function is `do_syscall_64`. This function disables instrumentation using `noinstr` in it’s declaration.
+The C code for this is present under `arch/x86/entry/common.c`. The function is `do_syscall_64`. This function disables instrumentation using `noinstr` ([noinstr doc](../../misc/noinstr.md)) in it’s declaration.
 
 The C code first calls `syscall_enter_from_user_mode` which does the following :
 1. Sets up RCU / Context Tracking and Tracing.
