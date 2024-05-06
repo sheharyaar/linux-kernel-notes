@@ -22,26 +22,40 @@ Once you are done with the course, you will have good background to explore the 
 
 ## Notes
 
-- [Debugging](./debugging.md)
-  - [Step 1 : Getting and understanding the logs](./debugging.md#step-1--getting-and-understanding-the-logs)
-  - [Step 2 : Debugging with GDB and QEMU/libvirt](./debugging.md#step-2--debugging-with-gdb-and-qemulibvirt)
-  - [Extras ](./debugging.md#extras)
-- [Finding Bugs](./finding-bugs.md)
-- [Event tracing](./tracing.md)
+- [Debugging](./debugging-tracing/debugging.md)
+  - [Step 1 : Getting and understanding the logs](./debugging-tracing/debugging.md#step-1--getting-and-understanding-the-logs)
+  - [Step 2 : Debugging with GDB and QEMU/libvirt](./debugging-tracing/debugging.md#step-2--debugging-with-gdb-and-qemulibvirt)
+  - [Extras ](./debugging-tracing/debugging.md#extras)
+- [Finding Bugs](./debugging-tracing/finding-bugs.md)
+- [Event tracing](./debugging-tracing/tracing.md)
+  - [eBPF tracing](./debugging-tracing/ebpf-tracing.md)(*TODO*)
 - Kernel Concepts
   - [Interrupts](./concepts/interrupts.md)
     - [Syscalls](./concepts/syscalls/syscalls.md)
-- [Kernel Core APIs](./core-apis.md) (*TODO*)
-- [Kernel Subsystem APIs](./subsystem-apis.md) (*TODO*)
-- [Kernel Testing](./kernel-testing.md) (*TODO*)
-- [Kernel Mentorship Program](./mentorship.md) (*TODO*)
+- [Kernel Core APIs](./core-apis/core-apis.md) (*TODO*)
+  - Core Utilities
+    - [Notification Mechanisms](./core-apis/core-utilities/notification-mechanism.md)
+    - [Printk](./core-apis/core-utilities/printk.md)
+    - [Symbols and Assembler Notations](./core-apis/core-utilities/symbols-assemblers.md)
+    - [Workqueues](./core-apis/core-utilities/workqueue.md)
+  - [Kobjects](./core-apis/kobjects.md)
+- Kernel Subsystems
+  - Devicetree
+    - [Devicetree Yamls](./subsystems/device-tree/devicetree-yaml.md)
+    - [Testing yaml dtschemas](./subsystems/device-tree/testing-schema.md)
+  - Graphics (*TODO*)
+- Implementations
+  - [Pipes and Splices](./implementations/pipes.md)
+- [Kernel Mentorship Program](./lkmp/mentorship.md) (*TODO*)
+  - [Prerequisites](./lkmp/Prerequisites.md) (*TODO*)
+  - Setting up the Kernel (*TODO*)
 
 ## Extras
 
-- [Kernel Boot Process](./kernel-boot.md) (*TODO*)
-- [Syzkaller Notes](./syzkaller.md)
-- [eBPF Tracing](./ebpf-tracing.md) (*TODO*)
-- [RCU in Kernel](./rcu.md) (*TODO*)
+- Kernel Boot Process (*TODO*)
+- [Syzkaller Notes](./debugging-tracing/syzkaller.md)
+- [eBPF Tracing](./debugging-tracing/ebpf-tracing.md) (*TODO*)
+- [RCU in Kernel](./extras/rcu.md) (*TODO*)
 
 ## Readings
 

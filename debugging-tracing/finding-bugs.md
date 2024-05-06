@@ -33,7 +33,7 @@ The Linux Kernel is a complex piece of software, and it's not uncommon to find b
 
 This document will cover some of the tools and techniques that can be used to find bugs in the kernel. For susbsystem specific tools, refer to the respective subsystem documentation.
 
-![finding-bugs-techniques-comparison](./assets/finding-bugs-1.png)
+![finding-bugs-techniques-comparison](../assets/finding-bugs-1.png)
 
 ## Code Coverage Tools
 
@@ -206,19 +206,19 @@ $ scripts/decode_stacktrace.sh vimlinux < path-to-crash-log
 
 - Uses the concept of **shadow memory** to keep track of the memory allocated to the kernel. For 8 bytes of memory, KASAN uses **1 byte** of shadow memory to store the number of good bytes.
 
-![KASAN shadow bytes](./assets/kasan-1.png)
+![KASAN shadow bytes](../assets/kasan-1.png)
 
 - The KASAN shadow bytes is present in the Virtual Address of the Kernel as :
-![KASAN in virtual memory](./assets/kasan-2.png)
+![KASAN in virtual memory](../assets/kasan-2.png)
 
 - Red-zones around heap objects :
-![KASAN Red-zone around heaps](./assets/kasan-3.png)
+![KASAN Red-zone around heaps](../assets/kasan-3.png)
 
 - Quarantine for heap objects, till the delay, the **shadow of that byte** is set to bad:
-![KASAN Quarantine for heap objects](./assets/kasan-4.png)
+![KASAN Quarantine for heap objects](../assets/kasan-4.png)
 
 - Compiler side implementation :
-![KASAN Compiler Side implementation](./assets/kasan-5.png)
+![KASAN Compiler Side implementation](../assets/kasan-5.png)
 
 For KASAN options and details, refer [Kernel Address Sanitizer (KASAN) - Kernel Docs](https://www.kernel.org/doc/html/latest/dev-tools/kasan.html)
 
@@ -231,7 +231,7 @@ For KASAN options and details, refer [Kernel Address Sanitizer (KASAN) - Kernel 
 - One way to quickly achieve a large enough total uptime is when the tool is deployed across a large fleet of machines.
 
 - KFENCE also uses guard pages, so there is a little memory overhead.
-![KFENCE guard pages](./assets/kfence-1.png)
+![KFENCE guard pages](../assets/kfence-1.png)
 
 For more information, refer [Kernel Electric Fence (KFENCE) - Kernel Docs](https://www.kernel.org/doc/html/latest/dev-tools/kfence.html)
 

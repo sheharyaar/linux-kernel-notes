@@ -17,7 +17,7 @@ import_ns:      USB_STORAGE
  - Fixing missing imports can be done with: `$ make nsdeps`
  - You can also run `nsdeps` for external module builds. A typical usage is: `$ make -C <path_to_kernel_src> M=$PWD nsdeps`
 
-# Assembler Notations
+## Assembler Notations
 - to make assembly debugging easier, the assembler provides notations like `SYM_FUNC_START`, `SYM_FUNC_END`, `SYM_CODE_START`
 
 These macros can be divided into three main groups :

@@ -68,7 +68,7 @@ struct pipe_inode_info {
 ## Splice
 
 - it is a system call, moves data between two file descriptors without need for **copying between kernel address space and user address space**. 
-- it works by transferring data between pipes since as we have already seen that the [[Pipes#Pipe Buffer|pipe buffer]] has direct access to the page.
+- it works by transferring data between pipes since as we have already seen that the [pipe buffer](#pipe-buffer) has direct access to the page.
 - works in **3 modes** :
 	- splice from **pipe to pipe**.
 	- splice from **file to pipe**.

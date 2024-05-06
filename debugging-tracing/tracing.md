@@ -59,7 +59,7 @@ Tracing can be divided into number of components :
 
 By frontend we mean the tool that you use to look at the data. For example, perf is a frontend for the kernel's performance counters, and ftrace is a frontend for the kernel's trace events (more on these later).
 
-![Relationship between tracing toolsw](./assets/tracing-1.png)
+![Relationship between tracing toolsw](../assets/tracing-1.png)
 Credits: Julia Evans
 
 ### Data Sources
@@ -69,7 +69,7 @@ There are generally two categories of data sources in the kernel:
    
 2. **tracepoints :** This is something you **compile into your program**. When someone using your program wants to see when that tracepoint is hit and extract data, they can “enable” or “activate” the tracepoint to start using it. Generally a tracepoint in this sense doesn’t cause any extra overhead when it’s not activated, and is relatively **low overhead when it is activated**. USDT (“dtrace probes”), lttng-ust, and [kernel tracepoints](#tracepoints) are all examples of this pattern.
 
-![Data sources in tracing](./assets/tracing-2.png)
+![Data sources in tracing](../assets/tracing-2.png)
 Credits: Julia Evans
 
 #### tracepoints
@@ -131,14 +131,14 @@ Useful in scenarios like :
 It’s important to understand the fundamental mechanisms by which tracing data gets out of the kernel. Theses are : ftrace, perf_events, eBPF, systemtap, and lttng.
 
 **Ways to extract data :**
-![alt text](./assets/tracing-3.png)
-![alt text](./assets/tracing-4.png)
+![alt text](../assets/tracing-3.png)
+![alt text](../assets/tracing-4.png)
 Credits: Julia Evans
 
 **Tracing frontends :**
 
-![alt text](./assets/tracing-5.png)
-![alt text](./assets/tracing-6.png)
+![alt text](../assets/tracing-5.png)
+![alt text](../assets/tracing-6.png)
 Credits: Julia Evans
 
 #### tracefs
