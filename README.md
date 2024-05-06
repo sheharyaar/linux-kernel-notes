@@ -15,8 +15,10 @@ Once you are done with the course, you will have good background to explore the 
 
 ## Subsystems selected
 
-1. ?
-2. ?
+1. Devicetree
+2. DRM (GPU)
+3. eBPF (Tracing)
+4. Bcachefs (Filesystem)
 
 ## Notes
 
@@ -26,7 +28,10 @@ Once you are done with the course, you will have good background to explore the 
   - [Extras ](./debugging.md#extras)
 - [Finding Bugs](./finding-bugs.md)
 - [Event tracing](./tracing.md)
-- [Kernel Core APIs and Concepts](./core-apis.md) (*TODO*)
+- Kernel Concepts
+  - [Interrupts](./concepts/interrupts.md)
+    - [Syscalls](./concepts/syscalls/syscalls.md)
+- [Kernel Core APIs](./core-apis.md) (*TODO*)
 - [Kernel Subsystem APIs](./subsystem-apis.md) (*TODO*)
 - [Kernel Testing](./kernel-testing.md) (*TODO*)
 - [Kernel Mentorship Program](./mentorship.md) (*TODO*)
