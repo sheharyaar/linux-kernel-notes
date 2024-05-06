@@ -17,7 +17,8 @@
 The assembly instructions for this is defined under `arch/x86/entry/entry_64.S` for x86_64 systems. This file clearly mentions that a syscall for this architecture can have upto **6** arguments in registers. 
 
 The following notes are present in the comments of `entry_SYSCALL_64` assembly code.
-```log
+
+```assembly
 64-bit SYSCALL instruction entry. Up to 6 arguments in registers.
 This is the only entry point used for 64-bit system calls.  The
 hardware interface is reasonably well designed and the register to

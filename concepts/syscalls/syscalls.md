@@ -8,6 +8,6 @@
 	- retrieve the result of the system call
 
 For more detailed information checkout the following : 
-[Implementation in Linux](./implementation.md)
-[vDSO and virtual syscalls](./vdso.md)
-[Userspace from syscalls](./userspace.md)
+- [Implementation in Linux](./implementation.md)
+- [vDSO and virtual syscalls](./vdso.md)
+- [Userspace from syscalls](./userspace.md)
