@@ -168,7 +168,7 @@ CONFIG_KDB_KEYBOARD=y
 
 ### Starting QEMU and Running VM
 
-1. Run `make gdb_scripts` to build the gdb scripts (required on kernels v5.1 and above).
+1. Run `make scripts_gdb` to build the gdb scripts (required on kernels v5.1 and above).
    
 2. Start QEMU with the following command : 
 ```shell
